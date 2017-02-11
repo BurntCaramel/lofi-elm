@@ -1,17 +1,32 @@
-module Parser.Model exposing (parseElement)
+module Lofi.Parse exposing
+  ( parseElement
+  )
 
-import Parser.Types exposing (..)
+{-| Parse #lofi strings into elements
+
+# Run Parsers
+@docs parseElement
+
+-}
+
+
+import Lofi exposing (Element(..), Text, Mention, KeyPath, TagValue(..), Tags)
 import String
 import Regex
 import Dict
 import List.Extra
 
 
+tagsRegex : Regex.Regex
 tagsRegex = Regex.regex "\\B#\\w+(:\\s*[^#]*)?"
+
+mentionsRegex : Regex.Regex
 mentionsRegex = Regex.regex "\\B@([a-zA-Z0-9-_]+(?:\\.[a-zA-Z0-9-_]+)*)"
 
+reduceMultipleSpaces : String -> String
 reduceMultipleSpaces = Regex.replace Regex.All (Regex.regex "\\s+") (\_ -> " ")
 
+nonEmptyRegex : Regex.Regex
 nonEmptyRegex = Regex.regex "\\S"
 
 rejectEmptyStrings : List String -> List String
@@ -30,7 +45,7 @@ convertToKeyPath input =
   |> String.split "."
   |> rejectEmptyStrings
 
-textsAndMentionSeriesReducer : List String -> (Texts, Mentions) -> (Texts, Mentions)
+textsAndMentionSeriesReducer : List String -> (List Text, List Mention) -> (List Text, List Mention)
 textsAndMentionSeriesReducer pair (texts, mentions) =
   let
     (inText, inMention) =
@@ -46,13 +61,14 @@ textsAndMentionSeriesReducer pair (texts, mentions) =
     outMention =
       Maybe.map convertToKeyPath inMention
   in
+    -- @TODO: Use :: instead to prepend, then reverse
     (texts ++ [outText], mentions ++ [outMention])
 
-reduceTextAndMentionSeries : List (List String) -> (Texts, Mentions)
+reduceTextAndMentionSeries : List (List String) -> (List Text, List Mention)
 reduceTextAndMentionSeries list =
   List.foldl textsAndMentionSeriesReducer ([], []) list
 
-parseTextsAndMentions : String -> { texts : Texts, mentions: Mentions }
+parseTextsAndMentions : String -> { texts : List Text, mentions: List Mention }
 parseTextsAndMentions input =
   input
   |> Regex.split Regex.All mentionsRegex
@@ -111,6 +127,10 @@ parseTags input =
   |> List.map (\match -> parseTag match.match)
   |> List.foldl tagKeyAndValueReducer Dict.empty
 
+{-| Parses a single #lofi line into an Element
+
+    parseElement "Click me #button #primary"
+-}
 parseElement : String -> Element
 parseElement input =
   let

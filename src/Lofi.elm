@@ -1,17 +1,40 @@
-module Lofi exposing (parseElement)
+module Lofi exposing
+  ( Element(..)
+  , Text, Mention
+  , KeyPath, Tags, TagValue(..)
+  )
 
 {-| A library for #lofi parsing
 
-# Parsing #lofi
-@docs parseElement
+# Types
+@docs Element, Text, Mention, KeyPath, Tags, TagValue
 
 -}
 
-import Parser.Types exposing (Element)
-import Parser.Model
+
+import Dict exposing (Dict)
 
 
-{-| Turn a #lofi string into a #lofi Element.
--}
-parseElement : String -> Element
-parseElement = Parser.Model.parseElement
+{-| Normal text to be displayed as-is -}
+type alias Text = String
+
+{-| A list of keys used in @mentions -}
+type alias KeyPath = List String
+{-| A reference to an external resource -}
+type alias Mention = Maybe KeyPath
+
+{-| The value of a tag, either a boolean, or nested content -}
+type TagValue
+  = Flag Bool
+  | Content { texts : List Text, mentions : List Mention }
+{-| A collection of tags -}
+type alias Tags = Dict String TagValue
+
+{-| A #lofi element, representing a single line -}
+type Element =
+  Element
+  { texts : List Text
+  , mentions : List Mention
+  , tags : Tags
+  , items : List Element
+  }
