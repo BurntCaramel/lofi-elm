@@ -45,35 +45,32 @@ convertToKeyPath input =
   |> String.split "."
   |> rejectEmptyStrings
 
-textsAndMentionSeriesReducer : List String -> (List Text, List Mention) -> (List Text, List Mention)
-textsAndMentionSeriesReducer pair (texts, mentions) =
+textsAndMentionSeriesReducer : (Int, String) -> (List Text, List Mention) -> (List Text, List Mention)
+textsAndMentionSeriesReducer (index, content) (texts, mentions) =
   let
-    (inText, inMention) =
-      case pair of
-        [] -> ("", Maybe.Nothing)
-        [text] -> (text, Maybe.Nothing)
-        [text, mention] -> (text, Maybe.Just mention)
-        text::mention::_ -> (text, Maybe.Just mention)
-    
-    outText =
-      reduceMultipleSpaces inText
-    
-    outMention =
-      Maybe.map convertToKeyPath inMention
+    isMention = index % 2 == 1 -- Odd indexes are mentions
   in
     -- @TODO: Use :: instead to prepend, then reverse
-    (texts ++ [outText], mentions ++ [outMention])
+    if isMention then
+      ( texts
+      , mentions ++ [convertToKeyPath content]
+      )
+    else
+      ( texts ++ [reduceMultipleSpaces content]
+      , mentions
+      )
 
-reduceTextAndMentionSeries : List (List String) -> (List Text, List Mention)
-reduceTextAndMentionSeries list =
-  List.foldl textsAndMentionSeriesReducer ([], []) list
+extractTextAndMentionSeries : List String -> (List Text, List Mention)
+extractTextAndMentionSeries list =
+  list
+  |> List.indexedMap (,)
+  |> List.foldl textsAndMentionSeriesReducer ([], [])
 
 parseTextsAndMentions : String -> { texts : List Text, mentions: List Mention }
 parseTextsAndMentions input =
   input
   |> Regex.split Regex.All mentionsRegex
-  |> List.Extra.groupsOf 2
-  |> reduceTextAndMentionSeries
+  |> extractTextAndMentionSeries
   |> \(texts, mentions) -> { texts = texts, mentions = mentions }
 
 
@@ -102,7 +99,6 @@ parseTag : String -> Maybe (String, TagValue)
 parseTag input =
   input
   |> Regex.find Regex.All tagKeyValueRegex -- capture tag elements
-  --|> \match::_ -> Maybe.map (\match -> parseTagSubmatches match.submatches) match
   |> \matches ->
     case matches of
       match::_ ->

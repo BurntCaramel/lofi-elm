@@ -21,7 +21,7 @@ type alias Text = String
 {-| A list of keys used in @mentions -}
 type alias KeyPath = List String
 {-| A reference to an external resource -}
-type alias Mention = Maybe KeyPath
+type alias Mention = KeyPath
 
 {-| The value of a tag, either a boolean, or nested content -}
 type TagValue
