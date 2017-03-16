@@ -1,7 +1,7 @@
 module LofiBootstrap4 exposing (main)
 
-import Html exposing (Html, section, div, text, button, textarea, pre)
-import Html.Attributes exposing (class, classList)
+import Html exposing (Html, section, div, h1, h2, h3, text, button, textarea, pre)
+import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick, onInput)
 import Json.Encode
 import Json.Helpers
@@ -100,8 +100,22 @@ viewElementBootstrap4 element =
               ]
             ]
             (List.map text texts)
+        else if hasTag "primary" then
+          h1 [] (List.map text texts)
+        else if hasTag "secondary" then
+          h2 [] (List.map text texts)
+        else if hasTag "tertiary" then
+          h3 [] (List.map text texts)
         else
           div [] (List.map text texts)
+
+contentTextareaStyle : Html.Attribute msg
+contentTextareaStyle =
+  style
+    [ ("width", "100%")
+    , ("background", "none")
+    , ("border", "none")
+    ]
 
 viewItem : Int -> String -> Html Msg
 viewItem index content =
@@ -109,9 +123,13 @@ viewItem index content =
     element = Lofi.Parse.parseElement content
   in
     div [ class "row" ]
-      [ div [ class "col" ]
-          [ textarea [ onInput (ChangeItem index) ] [ text content ] ]
-      , div [ class "col" ]
+      [ div [ class "col-12 col-sm-6" ]
+          [ textarea
+            [ onInput (ChangeItem index)
+            , contentTextareaStyle
+            ]
+            [ text content ] ]
+      , div [ class "col-12 col-sm-6" ]
           [ viewElementBootstrap4 element ]
       ]
 

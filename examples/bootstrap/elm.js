@@ -10205,6 +10205,20 @@ var _user$project$LofiBootstrap4$viewLofiRaw = function (element) {
 			_1: {ctor: '[]'}
 		});
 };
+var _user$project$LofiBootstrap4$contentTextareaStyle = _elm_lang$html$Html_Attributes$style(
+	{
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'width', _1: '100%'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'background', _1: 'none'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'border', _1: 'none'},
+				_1: {ctor: '[]'}
+			}
+		}
+	});
 var _user$project$LofiBootstrap4$viewElementBootstrap4 = function (element) {
 	var _p0 = element;
 	var _p4 = _p0._0.texts;
@@ -10275,10 +10289,31 @@ var _user$project$LofiBootstrap4$viewElementBootstrap4 = function (element) {
 				},
 				A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p4));
 		} else {
-			return A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
-				A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p4));
+			if (hasTag('primary')) {
+				return A2(
+					_elm_lang$html$Html$h1,
+					{ctor: '[]'},
+					A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p4));
+			} else {
+				if (hasTag('secondary')) {
+					return A2(
+						_elm_lang$html$Html$h2,
+						{ctor: '[]'},
+						A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p4));
+				} else {
+					if (hasTag('tertiary')) {
+						return A2(
+							_elm_lang$html$Html$h3,
+							{ctor: '[]'},
+							A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p4));
+					} else {
+						return A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							A2(_elm_lang$core$List$map, _elm_lang$html$Html$text, _p4));
+					}
+				}
+			}
 		}
 	}
 };
@@ -10382,7 +10417,7 @@ var _user$project$LofiBootstrap4$viewItem = F2(
 					_elm_lang$html$Html$div,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('col'),
+						_0: _elm_lang$html$Html_Attributes$class('col-12 col-sm-6'),
 						_1: {ctor: '[]'}
 					},
 					{
@@ -10393,7 +10428,11 @@ var _user$project$LofiBootstrap4$viewItem = F2(
 								ctor: '::',
 								_0: _elm_lang$html$Html_Events$onInput(
 									_user$project$LofiBootstrap4$ChangeItem(index)),
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: _user$project$LofiBootstrap4$contentTextareaStyle,
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
@@ -10408,7 +10447,7 @@ var _user$project$LofiBootstrap4$viewItem = F2(
 						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('col'),
+							_0: _elm_lang$html$Html_Attributes$class('col-12 col-sm-6'),
 							_1: {ctor: '[]'}
 						},
 						{
