@@ -1,6 +1,6 @@
 # #lofi in Elm
 
-Parse #lofi content. Native Elm port of [lofi-js](https://github.com/RoyalIcing/lofi-js)
+Parse #lofi content. Elm port of [lofi-js](https://github.com/RoyalIcing/lofi-js)
 
 ## Basic usage
 

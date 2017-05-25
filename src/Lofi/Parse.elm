@@ -14,14 +14,18 @@ import Lofi exposing (Element(..), Text, Mention, KeyPath, TagValue(..), Tags)
 import String
 import Regex
 import Dict
-import List.Extra
 
 
 tagsRegex : Regex.Regex
-tagsRegex = Regex.regex "\\B#\\w+(:\\s*[^#]*)?"
+tagsRegex = Regex.regex "\\B#[A-Za-z0-9_-]+(:\\s*[^#]*)?"
+tagKeyValueRegex : Regex.Regex
+tagKeyValueRegex = Regex.regex "\\B#([a-zA-Z0-9-_]+)(:\\s*([^#]*))?"
 
 mentionsRegex : Regex.Regex
-mentionsRegex = Regex.regex "\\B@([a-zA-Z0-9-_]+(?:\\.[a-zA-Z0-9-_]+)*)"
+mentionsRegex = Regex.regex "@([a-zA-Z0-9_-]+(?:\\.[a-zA-Z0-9-_]+)*)"
+
+introductionsRegex : Regex.Regex
+introductionsRegex = Regex.regex "^@([a-zA-Z0-9_-]+):"
 
 reduceMultipleSpaces : String -> String
 reduceMultipleSpaces = Regex.replace Regex.All (Regex.regex "\\s+") (\_ -> " ")
@@ -30,7 +34,7 @@ nonEmptyRegex : Regex.Regex
 nonEmptyRegex = Regex.regex "\\S"
 
 rejectEmptyStrings : List String -> List String
-rejectEmptyStrings = List.filter (not << Regex.contains nonEmptyRegex)
+rejectEmptyStrings = List.filter (Regex.contains nonEmptyRegex)
 
 -- parseKeyPathItem : String -> 
 -- R.map(R.when(
@@ -56,9 +60,16 @@ textsAndMentionSeriesReducer (index, content) (texts, mentions) =
       , mentions ++ [convertToKeyPath content]
       )
     else
-      ( texts ++ [reduceMultipleSpaces content]
-      , mentions
-      )
+      let
+        text = content
+          |> reduceMultipleSpaces
+      in
+        if String.isEmpty text && index > 0 then
+          ( texts, mentions)
+        else
+          ( texts ++ [text]
+          , mentions
+          )
 
 extractTextAndMentionSeries : List String -> (List Text, List Mention)
 extractTextAndMentionSeries list =
@@ -69,6 +80,7 @@ extractTextAndMentionSeries list =
 parseTextsAndMentions : String -> { texts : List Text, mentions: List Mention }
 parseTextsAndMentions input =
   input
+  |> String.trim
   |> Regex.split Regex.All mentionsRegex
   |> extractTextAndMentionSeries
   |> \(texts, mentions) -> { texts = texts, mentions = mentions }
@@ -92,9 +104,6 @@ parseTagSubmatches submatches =
     _ ->
       Nothing
 
-tagKeyValueRegex : Regex.Regex
-tagKeyValueRegex = Regex.regex "\\B#([a-zA-Z0-9-_]+)(:\\s*([^#]*))?"
-
 parseTag : String -> Maybe (String, TagValue)
 parseTag input =
   input
@@ -102,7 +111,8 @@ parseTag input =
   |> \matches ->
     case matches of
       match::_ ->
-        parseTagSubmatches match.submatches
+        match.submatches
+        |> parseTagSubmatches 
     
       _ ->
         Nothing
