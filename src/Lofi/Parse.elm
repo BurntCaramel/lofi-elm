@@ -25,7 +25,7 @@ mentionsRegex : Regex.Regex
 mentionsRegex = Regex.regex "@([a-zA-Z0-9_-]+(?:\\.[a-zA-Z0-9-_]+)*)"
 
 introductionsRegex : Regex.Regex
-introductionsRegex = Regex.regex "^@([a-zA-Z0-9_-]+):"
+introductionsRegex = Regex.regex "^@([a-zA-Z0-9_-]+):[\\s]*(.*)"
 
 reduceMultipleSpaces : String -> String
 reduceMultipleSpaces = Regex.replace Regex.All (Regex.regex "\\s+") (\_ -> " ")
@@ -41,6 +41,27 @@ rejectEmptyStrings = List.filter (Regex.contains nonEmptyRegex)
 --   R.test(/^\d/), // Starts with a digit
 --   (input) => parseInt(input, 10) // Convert to number
 -- ))
+
+parseIntroduction : String -> { introduction: Maybe String, rest: String }
+parseIntroduction input =
+  input
+  |> Regex.find Regex.All introductionsRegex
+  |> \matches ->
+    case matches of
+      match::_ ->
+        case match.submatches of
+          introduction::rest::[] ->
+            case rest of
+              Just rest ->
+                { introduction = introduction, rest = rest }
+              
+              Nothing ->
+                { introduction = introduction, rest = "" }
+          _ ->
+            { introduction = Nothing, rest = input }
+    
+      _ ->
+        { introduction = Nothing, rest = input }
 
 convertToKeyPath : String -> List String
 convertToKeyPath input =
@@ -77,7 +98,7 @@ extractTextAndMentionSeries list =
   |> List.indexedMap (,)
   |> List.foldl textsAndMentionSeriesReducer ([], [])
 
-parseTextsAndMentions : String -> { texts : List Text, mentions: List Mention }
+parseTextsAndMentions : String -> { texts: List Text, mentions: List Mention }
 parseTextsAndMentions input =
   input
   |> String.trim
@@ -140,18 +161,22 @@ parseTags input =
 parseElement : String -> Element
 parseElement input =
   let
-    { texts, mentions } =
+    { introduction, rest } =
       input
-      |> Regex.replace Regex.All tagsRegex (\_ -> "")
       |> String.trim
+      |> parseIntroduction
+
+    { texts, mentions } =
+      rest
+      |> Regex.replace Regex.All tagsRegex (\_ -> "")
       |> parseTextsAndMentions
     
     tags =
       parseTags input
   in
     Element
-    {
-      texts = texts
+    { introduction = introduction
+    , texts = texts
     , mentions = mentions
     , tags = tags
     , items = []

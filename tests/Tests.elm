@@ -9,7 +9,7 @@ import Lofi exposing (Element(..), TagValue(..))
 import Lofi.Parse exposing (parseElement)
 
 
-defaultElement = { texts = [], mentions = [], tags = Dict.empty, items = [] }
+defaultElement = { introduction = Nothing, texts = [], mentions = [], tags = Dict.empty, items = [] }
 
 all : Test
 all =
@@ -115,5 +115,28 @@ all =
             , test "Single mention (key path) with surrounding whitespace" <|
                 \() ->
                     Expect.equal (parseElement " #table #title: @person.name ") (Element { defaultElement | texts = [""], mentions = [], tags = Dict.fromList [ ("table", Flag True), ("title", Content { texts = [""], mentions = [["person", "name"]] }) ] })
+            ]
+        , describe "Introduction"
+            [ test "Text" <|
+                \() ->
+                    Expect.equal (parseElement "@user: hello") (Element { defaultElement | introduction = Just "user", texts = ["hello"] })
+            , test "Empty text" <|
+                \() ->
+                    Expect.equal (parseElement "@user:") (Element { defaultElement | introduction = Just "user", texts = [""] })
+            , test "Space" <|
+                \() ->
+                    Expect.equal (parseElement "@user: ") (Element { defaultElement | introduction = Just "user", texts = [""] })
+            , test "Tag" <|
+                \() ->
+                    Expect.equal (parseElement "@user: #text") (Element { defaultElement | introduction = Just "user", texts = [""], tags = Dict.fromList [ ("text", Flag True) ] })
+            , test "Mention (key path)" <|
+                \() ->
+                    Expect.equal (parseElement "@user: @person.name") (Element { defaultElement | introduction = Just "user", texts = [""], mentions = [["person", "name"]] })
+            , test "Tag (value)" <|
+                \() ->
+                    Expect.equal (parseElement "@user: hello #key: value") (Element { defaultElement | introduction = Just "user", texts = ["hello"], tags = Dict.fromList [ ("key", Content { texts = ["value"], mentions = [] }) ] })
+            , test "Tag (value) with surrounding whitespace" <|
+                \() ->
+                    Expect.equal (parseElement " @user: hello #key: value ") (Element { defaultElement | introduction = Just "user", texts = ["hello"], tags = Dict.fromList [ ("key", Content { texts = ["value"], mentions = [] }) ] })
             ]
         ]

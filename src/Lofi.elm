@@ -33,7 +33,8 @@ type alias Tags = Dict String TagValue
 {-| A #lofi element, representing a single line -}
 type Element =
   Element
-  { texts : List Text
+  { introduction : Maybe String
+  , texts : List Text
   , mentions : List Mention
   , tags : Tags
   , items : List Element
